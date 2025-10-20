@@ -2,7 +2,7 @@
 
 10/20
 
-This repository is a group collaboration for a course project for University of Michigan EPID 670, which will be an interactive Shiny dashboard for school vaccination rates throughout the state of Michigan.
+This repository is a group collaboration for a course project for University of Michigan EPID 678, which will be an interactive Shiny dashboard for school vaccination rates throughout the state of Michigan.
 
 It currently of three main files: dataScript.R, app.R, and PlotCodeChunks.Rmd
 
