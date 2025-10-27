@@ -13,28 +13,92 @@ if(!require(tigris)){install.packages("tigris")}
 
 load(file = file.path(getwd(), "data", "immunodata.RData"))
 
-
-
-
 ```
 
 
-Overall Rates of Vaccination Waivers through the state
+Requested plots are:
+*Vaccine Waiver rate by County
+* Vaccine Waiver Rate by District
+* Vaccine Waiver Rate by Building
 
 *Dropdown that selects between "Vaccinated", "Waiver", "Medical Waiver", Religious Waiver", "Philosophical Waivers
 *Selector that selects between Kindergarten, 7th Grade, or All
 *Selector for % vs Count
 This one will be using overall df, so colnames from grade selection will not be used, rather group will be used
 
+*CREATE SELECTORS*
+All plots should be built to take in chosenVax, chosenGrade, chosenTally as needed, and build a plot from some combination of these
 ```{r}
-
-vaxSelections <- c("Complete for Recommended Vaccines" = "COMP", "Vaccination Waiver (Any)" = "Waiver", "Medical Waiver" = "Medical", "Religious Waiver" = "Religious", "Philosophical Waiver" = "Philosophical")
+vaxSelections <- c("Complete for Recommended Vaccines" = "COMP", "Vaccination Waiver (Any)" = "Waiver", "Medical Waiver" = "Medical", "Religious Waiver" = "Religious", "Philosophical Waiver" = "Philosophical", NA)
 gradeSelection <- c("Kindergarten" = "K", "7th Grade" = "7", "Overall" = "tot")
 tallySelection <- c("Percent (%)" = "pct", "Count (N)" = "n")
+levelSelection <- c("DISTRICT", "COUNTY", "OVERALL")
 
-chosenVax <- "Religious"
-chosenGrade <- "7"
-chosenTally <- "pct"
+#Randomly sample a selection each time to simulate a dropdown choice
+
+chosenVax <- vaxSelections[sample(1:length(vaxSelections),1)]
+chosenGrade <- gradeSelection[sample(1:length(gradeSelection),1)]
+chosenTally <- tallySelection[sample(1:length(tallySelection),1)]
+chosenLevel <- levelSelection[sample(1:length(levelSelection),1)]
+
+
+choice <- c(chosenLevel, chosenGrade, chosenVax, chosenTally)
+
+```
+
+First build a parser to understand the choice being made to determine what statistics to present:
+```{r}
+
+dataSelector <- function(chosenLevel){
+  #Take level choice from input, return the dataframe to be used for plots
+  if(chosenLevel == "DISTRICT"){return(dfDistrict)}
+  else if(chosenLevel == "COUNTY"){return(dfCounty)}
+  else(return(df))
+}
+
+fullData <- dataSelector(chosenLevel)
+
+
+#Plot selected vaccine status, for selected grade, with selected tally mode by: district, county, or unaggregated
+
+reduceData <- function(chosenVax, chosenGrade, chosenTally){
+  #Take selections of vaccine to present, grade to present, and tally form, produce plot to show
+  
+  special <- "NAME" %in% colnames(fullData)
+  ids <- c("NAME", "DISTRICT", "COUNTY", "Group")
+  coi <- case_when(special ~  paste0(chosenTally, chosenVax),
+                   TRUE ~ paste0(chosenGrade, "_",chosenTally,chosenVax)
+                     ) #column name syntax varies in full data (with NAME) vs aggregated
+  
+  #Apply grade filter separately if we're using overall dataset
+  if(special){
+    if(chosenGrade != "tot"){
+      fullData <- fullData %>%
+        filter(Group == chosenGrade)
+  }}
+  
+  
+  reducedData <- fullData %>%
+    select(any_of(c(ids, coi)))
+  
+  
+  
+  return(reducedData)
+}
+  
+reducedData <- reduceData(chosenVax, chosenGrade, chosenTally)
+print(reducedData)
+
+####BROKEN FOR K/7_pctComp
+
+
+```
+
+
+
+
+
+```{r}
 
 coi <- paste0(chosenTally, chosenVax)
 dat <- df %>%
