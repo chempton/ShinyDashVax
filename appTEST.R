@@ -242,6 +242,21 @@ ui <- fluidPage(
         </div>')
   ),
   tabsetPanel(
+    tabPanel("TEST",
+             fluidRow(
+               column(3,
+                      selectInput("test_county", "Test County", choices = sort(unique(df$COUNTY)), selected = "Washtenaw"),
+                      selectInput("test_district", "Test District", choices = sort(unique(df$DISTRICT[df$COUNTY=="Washtenaw"])), selected = sort(unique(df$DISTRICT[df$COUNTY=="Washtenaw"])[1])),
+                      selectInput("test_school", "Test School", choices = sort(unique(df$NAME[df$DISTRICT==sort(unique(df$DISTRICT[df$COUNTY=="Washtenaw"])[1])])), selected = sort(unique(df$NAME[df$DISTRICT==sort(unique(df$DISTRICT[df$COUNTY=="Washtenaw"])[1])]))[1]),
+                      checkboxGroupInput("test_grades", "Test Grades", choices = grade_choices, selected = c("K", "7"))
+               ),
+               column(9,
+                      h4("Test Results (App Logic vs Direct DF Calculation)"),
+                      tags$br(),
+                      uiOutput("testResults")
+               )
+             )
+    ),
     tabPanel("County",
              fluidRow(
                column(4, checkboxGroupInput("county_grade", "Select Grade Level(s)", choices = grade_choices, selected = c("K", "7"))),
@@ -371,7 +386,7 @@ This dashboard was developed as a project for the University of Michigan Epidemi
 <b>For any technical or maintenance questions, please contact: </b>  <a href="mailto:chempton@umich.edu">chempton@umich.edu</a><br>
 </p>    
 <p style="font-size:0.97em; color:#555;">
-  <i> These data subject to updates from MDHH. Page last updated 12/1/2025</i>
+  <i> These data subject to updates from MDHHS, page last updated 12/1/2025</i>
 </p>
 </div>
       ')
@@ -382,6 +397,67 @@ This dashboard was developed as a project for the University of Michigan Epidemi
 )
 
 server <- function(input, output, session) {
+  
+  observeEvent(input$test_county, {
+    districts <- sort(unique(df$DISTRICT[df$COUNTY==input$test_county]))
+    updateSelectInput(session, "test_district", choices = districts, selected = districts[1])
+  })
+  observeEvent(input$test_district, {
+    schools <- sort(unique(df$NAME[df$DISTRICT==input$test_district]))
+    updateSelectInput(session, "test_school", choices = schools, selected = schools[1])
+  })
+  
+  output$testResults <- renderUI({
+    req(input$test_county, input$test_district, input$test_school, input$test_grades)
+    grades <- input$test_grades
+    df_county <- df %>% filter(COUNTY == input$test_county, Group %in% grades)
+    app_county_count <- sum(df_county$nWaiver, na.rm=TRUE)
+    app_county_N <- sum(df_county$N, na.rm=TRUE)
+    app_county_rate <- if (app_county_N > 0) round(app_county_count / app_county_N * 100, 1) else NA
+    
+    direct_county_count <- sum(df$nWaiver[df$COUNTY == input$test_county & df$Group %in% grades], na.rm=TRUE)
+    direct_county_N <- sum(df$N[df$COUNTY == input$test_county & df$Group %in% grades], na.rm=TRUE)
+    direct_county_rate <- if (direct_county_N > 0) round(direct_county_count / direct_county_N * 100, 1) else NA
+    
+    df_district <- df %>% filter(COUNTY == input$test_county, DISTRICT == input$test_district, Group %in% grades)
+    app_district_count <- sum(df_district$nWaiver, na.rm=TRUE)
+    app_district_N <- sum(df_district$N, na.rm=TRUE)
+    app_district_rate <- if (app_district_N > 0) round(app_district_count / app_district_N * 100, 1) else NA
+    
+    direct_district_count <- sum(df$nWaiver[df$COUNTY == input$test_county & df$DISTRICT == input$test_district & df$Group %in% grades], na.rm=TRUE)
+    direct_district_N <- sum(df$N[df$COUNTY == input$test_county & df$DISTRICT == input$test_district & df$Group %in% grades], na.rm=TRUE)
+    direct_district_rate <- if (direct_district_N > 0) round(direct_district_count / direct_district_N * 100, 1) else NA
+    
+    df_school <- df %>% filter(COUNTY == input$test_county, DISTRICT == input$test_district, NAME == input$test_school, Group %in% grades)
+    app_school_count <- sum(df_school$nWaiver, na.rm=TRUE)
+    app_school_N <- sum(df_school$N, na.rm=TRUE)
+    app_school_rate <- if (app_school_N > 0) round(app_school_count / app_school_N * 100, 1) else NA
+    
+    direct_school_count <- sum(df$nWaiver[df$COUNTY == input$test_county & df$DISTRICT == input$test_district & df$NAME == input$test_school & df$Group %in% grades], na.rm=TRUE)
+    direct_school_N <- sum(df$N[df$COUNTY == input$test_county & df$DISTRICT == input$test_district & df$NAME == input$test_school & df$Group %in% grades], na.rm=TRUE)
+    direct_school_rate <- if (direct_school_N > 0) round(direct_school_count / direct_school_N * 100, 1) else NA
+    
+    cmp <- function(a, b) if(identical(a, b)) "<span style='color:green;'>PASS</span>" else "<span style='color:red;'>FAIL</span>"
+    HTML(sprintf("
+    <table style='width:100%%;'>
+      <tr style='border-bottom:1px solid #ddd;'><th></th><th>App Aggregation</th><th>Direct DF Calculation</th><th>Test</th></tr>
+      <tr><td><b>County Waiver Count</b></td><td>%s</td><td>%s</td><td>%s</td></tr>
+      <tr><td><b>County Waiver Rate</b></td><td>%s%%</td><td>%s%%</td><td>%s</td></tr>
+      <tr style='border-top:1px solid #bbb;'>
+      <td><b>District Waiver Count</b></td><td>%s</td><td>%s</td><td>%s</td></tr>
+      <tr><td><b>District Waiver Rate</b></td><td>%s%%</td><td>%s%%</td><td>%s</td></tr>
+      <tr style='border-top:1px solid #bbb;'>
+      <td><b>School Waiver Count</b></td><td>%s</td><td>%s</td><td>%s</td></tr>
+      <tr><td><b>School Waiver Rate</b></td><td>%s%%</td><td>%s%%</td><td>%s</td></tr>
+    </table>",
+                 app_county_count, direct_county_count, cmp(app_county_count, direct_county_count),
+                 app_county_rate, direct_county_rate, cmp(app_county_rate, direct_county_rate),
+                 app_district_count, direct_district_count, cmp(app_district_count, direct_district_count),
+                 app_district_rate, direct_district_rate, cmp(app_district_rate, direct_district_rate),
+                 app_school_count, direct_school_count, cmp(app_school_count, direct_school_count),
+                 app_school_rate, direct_school_rate, cmp(app_school_rate, direct_school_rate)
+    ))
+  })
   
   output$district_ui <- renderUI({
     req(input$district_county)
