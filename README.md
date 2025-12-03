@@ -13,13 +13,13 @@ It is intended for quick and straightforward viewing and interpretation of immun
 
 
 ### File and Directory Structure:
-├── app.R
-├── appTEST.R
-├── dataScript.R
-├── data/
-│   ├── kindergarten_waivers.xlsx
-│   ├── seventhgrade_waivers.xlsx
-│   ├── immunodata.RData
+app.R
+appTEST.R
+dataScript.R
+data/
+* kindergarten_waivers.xlsx
+* seventhgrade_waivers.xlsx
+* immunodata.RData
 
 ### File Descriptions:
 

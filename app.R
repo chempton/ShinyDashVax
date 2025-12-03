@@ -11,9 +11,10 @@ if(!require(leaflet)) install.packages("leaflet")
 if(!require(tigris)) install.packages("tigris")
 if(!require(bslib)) install.packages("bslib")
 if(!require(RColorBrewer)) install.packages("RColorBrewer")
+if(!require(here)) install.packages("here")
 
 if(!exists("dfCounty") | !exists("dfDistrict") | !exists("df")){
-  load(file.path(getwd(), "data", "immunodata.RData"))
+  load(here("data/immunodata.RData"))
 }
 mi_counties <- counties(state = "MI", cb = TRUE, year = 2024, class = "sf") %>%
   sf::st_transform(crs = 4326)
@@ -339,7 +340,7 @@ ui <- fluidPage(
         ">
 <h4>About the Data</h4>
 <p>
-This dashboard presents information on school immunization waivers in Michigan at the county, district, and school-level The data is sourced from the Michigan Department of Health & Human Services (MDHHS) 2024 reported data.
+This dashboard presents information on school immunization waivers in Michigan at the county, district, and school-level, sourced from the Michigan Department of Health & Human Services (MDHHS) 2024 reported data.
 </p>
 <p>
 <b>Dashboard features include:</b>
@@ -365,13 +366,13 @@ Additional data resources can be found from the
 <!-- About Us -->
 <h4>About Us</h4>
 <p>
-This dashboard was developed as a project for the University of Michigan Epidemiology Department&apos;s Applied Epidemiology in Governmental Public Health curriculum by MPH students: <br>Cameron Hempton, Ashna Patel, Ashley Dittmar, Chetna Kumari, Zoe Gurney, and Sarah Olson <br>
+This dashboard was developed as a project for the University of Michigan Department of Epidemiology&apos;s Applied Epidemiology in Governmental Public Health curriculum by MPH students: <br>Cameron Hempton, Ashna Patel, Ashley Dittmar, Chetna Kumari, Zoe Gurney, and Sarah Olson <br>
 </p>  
 <p>
 <b>For any technical or maintenance questions, please contact: </b>  <a href="mailto:chempton@umich.edu">chempton@umich.edu</a><br>
 </p>    
 <p style="font-size:0.97em; color:#555;">
-  <i> These data subject to updates from MDHH. Page last updated 12/1/2025</i>
+  <i> These data subject to updates from MDHHS. Page last updated 12/1/2025</i>
 </p>
 </div>
       ')
