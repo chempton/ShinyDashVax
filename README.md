@@ -1,4 +1,6 @@
-# ShinyDashVax
+# michigan-school-vaccination-dashboard
+
+Update: This dashboard has been finalized for 2024 data, and can be accessed online through its [ShinyApps.io link](https://52hu04-cameron-hempton.shinyapps.io/shinydashvaxdeploy/)
 
 This dashboard was created to satisfy the Applied Practice Experience requirement in fulfillment of a Master of Public Health from the University of Michigan
 
