@@ -1,5 +1,5 @@
 ######################################################################
-# U-M Immunization Dashboard v1.1: Accessible Colors and Ordered Plots
+# U-M Immunization Dashboard 
 ######################################################################
 
 # Import packages + data
@@ -16,6 +16,8 @@ if(!require(here)) install.packages("here")
 if(!exists("dfCounty") | !exists("dfDistrict") | !exists("df")){
   load(here("data/immunodata.RData"))
 }
+
+#Selection Helpers
 mi_counties <- counties(state = "MI", cb = TRUE, year = 2024, class = "sf") %>%
   sf::st_transform(crs = 4326)
 
@@ -35,6 +37,7 @@ missing_tibble <- function(labels) {
   as_tibble(setNames(as.list(rep(NA_real_, length(labels))), labels))
 }
 
+#UI
 ui <- fluidPage(
   theme = bs_theme(
     bootswatch = "flatly",
@@ -44,6 +47,7 @@ ui <- fluidPage(
     bg = "#F8F8F8",
     fg = "#00274C"
   ),
+  #Styling for tables and cards
   tags$head(
     tags$style(HTML("
   /* Nav bar and tabs */
@@ -242,6 +246,8 @@ ui <- fluidPage(
             </div>
         </div>')
   ),
+  
+  #Tab designs
   tabsetPanel(
     tabPanel("County",
              fluidRow(
@@ -317,7 +323,7 @@ ui <- fluidPage(
       fluidRow(
         column(
           width = 12,
-          # Heading styled similarly to the home title
+          # Heading styled like main title
           HTML('
         <div class="immunization-title-card" style="margin-top:10px; margin-bottom:0;">
           <div class="immunization-title">
@@ -325,7 +331,7 @@ ui <- fluidPage(
           </div>
         </div>
       '),
-          # Body text section, styled for readability
+         
           HTML('
         <div style="
           background: #FFFFFF;
@@ -382,6 +388,7 @@ This dashboard was developed as a project for the University of Michigan Departm
   )
 )
 
+#Server Logic
 server <- function(input, output, session) {
   
   output$district_ui <- renderUI({
